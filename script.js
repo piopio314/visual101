@@ -1,164 +1,110 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const video = document.getElementById('camera');
-  const output = document.getElementById('output');
-  const startButton = document.getElementById('start-camera');
-  const startContainer = document.getElementById('start-container');
-  const filtersContainer = document.getElementById('filters-container');
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let currentEffect = 'normalny';
+let stream = null;
 
-  let currentFilter = 'none';
-  let faceMesh = null;
-  let camera = null;
+// Przyciski efektów
+const buttons = {
+    normalny: document.getElementById('normalny'),
+    maska: document.getElementById('maska'),
+    okulary: document.getElementById('okulary'),
+    kapelusz: document.getElementById('kapelusz')
+};
 
-  // Inicjalizacja Face Mesh
-  function initializeFaceMesh() {
-    faceMesh = new FaceMesh({
-      locateFile: (file) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-      }
-    });
-
-    faceMesh.setOptions({
-      maxNumFaces: 1,
-      refineLandmarks: true,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
-
-    faceMesh.onResults(onResults);
-  }
-
-  // Obsługa wyników detekcji
-  function onResults(results) {
-    const ctx = output.getContext('2d');
-    ctx.clearRect(0, 0, output.width, output.height);
-
-    if (results.multiFaceLandmarks) {
-      for (const landmarks of results.multiFaceLandmarks) {
-        drawFilter(ctx, landmarks);
-      }
-    }
-  }
-
-  // Rysowanie filtrów
-  function drawFilter(ctx, landmarks) {
-    switch (currentFilter) {
-      case 'mask':
-        drawMask(ctx, landmarks);
-        break;
-      case 'glasses':
-        drawGlasses(ctx, landmarks);
-        break;
-      case 'hat':
-        drawHat(ctx, landmarks);
-        break;
-    }
-  }
-
-  // Funkcje rysowania poszczególnych filtrów
-  function drawMask(ctx, landmarks) {
-    const nose = landmarks[4];
-    const chin = landmarks[152];
-    const leftCheek = landmarks[234];
-    const rightCheek = landmarks[454];
-
-    ctx.beginPath();
-    ctx.moveTo(leftCheek.x * output.width, leftCheek.y * output.height);
-    ctx.lineTo(rightCheek.x * output.width, rightCheek.y * output.height);
-    ctx.lineTo(chin.x * output.width, chin.y * output.height);
-    ctx.lineTo(nose.x * output.width, nose.y * output.height);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
-    ctx.fill();
-  }
-
-  function drawGlasses(ctx, landmarks) {
-    const leftEye = landmarks[33];
-    const rightEye = landmarks[263];
-    const nose = landmarks[4];
-
-    const width = (rightEye.x - leftEye.x) * output.width * 1.5;
-    const height = width * 0.3;
-
-    ctx.beginPath();
-    ctx.ellipse(
-      leftEye.x * output.width,
-      leftEye.y * output.height,
-      width / 4,
-      height,
-      0, 0, 2 * Math.PI
-    );
-    ctx.ellipse(
-      rightEye.x * output.width,
-      rightEye.y * output.height,
-      width / 4,
-      height,
-      0, 0, 2 * Math.PI
-    );
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 5;
-    ctx.stroke();
-  }
-
-  function drawHat(ctx, landmarks) {
-    const forehead = landmarks[10];
-    const leftTemple = landmarks[234];
-    const rightTemple = landmarks[454];
-
-    const width = (rightTemple.x - leftTemple.x) * output.width * 1.5;
-    const height = width * 0.5;
-
-    ctx.beginPath();
-    ctx.moveTo(leftTemple.x * output.width, leftTemple.y * output.height);
-    ctx.lineTo(rightTemple.x * output.width, rightTemple.y * output.height);
-    ctx.lineTo(forehead.x * output.width, forehead.y * output.height - height);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
-    ctx.fill();
-  }
-
-  // Inicjalizacja kamery
-  startButton.addEventListener('click', async () => {
+// Inicjalizacja kamery
+async function initCamera() {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          facingMode: 'user'
-        },
-        audio: false
-      });
-
-      video.srcObject = stream;
-      startContainer.style.display = 'none';
-
-      video.addEventListener('playing', () => {
-        output.width = video.videoWidth;
-        output.height = video.videoHeight;
-      });
-
-      initializeFaceMesh();
-
-      camera = new Camera(video, {
-        onFrame: async () => {
-          await faceMesh.send({ image: video });
-        },
-        width: 640,
-        height: 480
-      });
-      camera.start();
-
-    } catch (error) {
-      console.error('Błąd dostępu do kamery:', error);
-      alert('Nie udało się uzyskać dostępu do kamery. Upewnij się, że przeglądarka ma uprawnienia do korzystania z kamery.');
+        stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'user',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            } 
+        });
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            updateCanvas();
+        };
+    } catch (err) {
+        console.error('Błąd dostępu do kamery:', err);
     }
-  });
+}
 
-  // Obsługa przycisków filtrów
-  filtersContainer.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentFilter = btn.dataset.filter;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+// Aktualizacja canvas
+function updateCanvas() {
+    if (!stream) return;
+
+    // Rysuj obraz z kamery
+    ctx.save();
+    ctx.scale(-1, 1); // Odbicie lustrzane
+    ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+    ctx.restore();
+
+    // Zastosuj efekt
+    applyEffect();
+
+    // Kontynuuj animację
+    requestAnimationFrame(updateCanvas);
+}
+
+// Aplikowanie efektów
+function applyEffect() {
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const size = canvas.width * 0.3;
+
+    switch (currentEffect) {
+        case 'maska':
+            // Czerwony trójkąt
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - size/2);
+            ctx.lineTo(centerX - size/2, centerY + size/2);
+            ctx.lineTo(centerX + size/2, centerY + size/2);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+            ctx.fill();
+            break;
+
+        case 'okulary':
+            // Czarne okulary
+            ctx.beginPath();
+            // Lewa soczewka
+            ctx.arc(centerX - size/3, centerY, size/4, 0, Math.PI * 2);
+            // Prawa soczewka
+            ctx.arc(centerX + size/3, centerY, size/4, 0, Math.PI * 2);
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+            // Mostek okularów
+            ctx.beginPath();
+            ctx.moveTo(centerX - size/6, centerY);
+            ctx.lineTo(centerX + size/6, centerY);
+            ctx.stroke();
+            break;
+
+        case 'kapelusz':
+            // Implementacja kapelusza (możesz dodać później)
+            break;
+    }
+}
+
+// Obsługa przycisków
+Object.entries(buttons).forEach(([effect, button]) => {
+    button.addEventListener('click', () => {
+        // Usuń klasę active ze wszystkich przycisków
+        Object.values(buttons).forEach(btn => btn.classList.remove('active'));
+        // Dodaj klasę active do klikniętego przycisku
+        button.classList.add('active');
+        // Ustaw aktualny efekt
+        currentEffect = effect;
     });
-  });
 });
+
+// Aktywuj przycisk "normalny" na start
+buttons.normalny.classList.add('active');
+
+// Uruchom kamerę
+initCamera();

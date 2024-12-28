@@ -1,145 +1,77 @@
 body {
   margin: 0;
-  padding: 1rem;
+  padding: 20px;
   font-family: 'Arial', sans-serif;
   background: linear-gradient(to right, #000000, #000033) fixed;
   color: white;
   min-height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: center;
   flex-direction: column;
-  box-sizing: border-box;
-}
-
-* {
-  box-sizing: border-box;
+  align-items: center;
 }
 
 h1 {
   text-align: center;
-  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  font-size: 2rem;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(10px);
   border-radius: 15px;
-  padding: clamp(1rem, 3vw, 1.5rem) clamp(1.5rem, 5vw, 3rem);
+  padding: 1rem 2rem;
   border: 1px solid rgba(255,255,255,0.3);
   margin: 1rem 0;
-  width: fit-content;
-  max-width: 90%;
 }
 
-#camera-container {
+.camera-container {
+  position: relative;
   width: 100%;
-  max-width: min(90vh, 90vw);
-  max-height: 70vh;
-  aspect-ratio: 1;
+  max-width: 600px;
   margin: 0 auto;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 15px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255,255,255,0.3);
-  position: relative;
   overflow: hidden;
+  aspect-ratio: 3/4;
 }
 
-#camera, #output {
+#video, #canvas {
   position: absolute;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transform: scaleX(-1);
 }
 
-#output {
-  z-index: 1;
-}
-
-#filters-container {
-  margin-top: 1rem;
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  max-width: 100%;
-  padding: 0.5rem;
-}
-
-.filter-btn {
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  color: white;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.filter-btn:hover, .filter-btn.active {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.05);
-}
-
-/* Orientacja pozioma na telefonach */
-@media (orientation: landscape) and (max-height: 500px) {
-  body {
-    padding: 0.5rem;
-  }
-
-  h1 {
-    font-size: clamp(1rem, 4vw, 1.5rem);
-    padding: 0.5rem 1rem;
-    margin: 0.5rem 0;
-  }
-
-  #camera-container {
-    max-height: 80vh;
-    aspect-ratio: 4/3;
-  }
-
-  #filters-container {
-    margin-top: 0.5rem;
-  }
-
-  .filter-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-  }
-}
-
-/* Tablety i większe ekrany */
-@media (min-width: 768px) {
-  #camera-container {
-    max-width: min(80vh, 800px);
-    aspect-ratio: 4/3;
-  }
-}
-
-#start-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  text-align: center;
-  padding: 1rem;
+#canvas {
   z-index: 2;
 }
 
-#start-camera {
-  padding: clamp(0.8rem, 2vw, 1rem) clamp(1.5rem, 4vw, 2rem);
-  font-size: clamp(1rem, 3vw, 1.2rem);
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.5);
+.controls {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.1);
   color: white;
-  border-radius: 10px;
   cursor: pointer;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255,255,255,0.3);
   transition: all 0.3s ease;
 }
 
-#start-camera:hover {
+button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+button.active {
   background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(255,255,255,0.3);
 }

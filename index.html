@@ -1,27 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Visual 101 - Kamera z AI</title>
+  <title>Visual 101 - Zabawa z Kamerą</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 </head>
 <body>
   <h1>Visual 101 - Zabawa z Kamerą</h1>
-  <div id="camera-container">
-    <video id="camera" autoplay playsinline></video>
-    <canvas id="output"></canvas>
-    <div id="start-container">
-      <button id="start-camera">Włącz Kamerę</button>
-    </div>
+  <div class="camera-container">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
   </div>
-  <div id="filters-container">
-    <button class="filter-btn" data-filter="none">Normalny</button>
-    <button class="filter-btn" data-filter="mask">Maska</button>
-    <button class="filter-btn" data-filter="glasses">Okulary</button>
-    <button class="filter-btn" data-filter="hat">Kapelusz</button>
+  <div class="controls">
+    <button id="normalny">Normalny</button>
+    <button id="maska">Maska</button>
+    <button id="okulary">Okulary</button>
+    <button id="kapelusz">Kapelusz</button>
   </div>
   <script src="script.js"></script>
 </body>
