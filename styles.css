@@ -2,7 +2,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Arial', sans-serif;
-  background: linear-gradient(135deg, #000033 0%, #000066 100%);
+  background: linear-gradient(to right, #000000, #000033);
   color: white;
   min-height: 100vh;
   display: flex;
