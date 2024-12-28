@@ -1,16 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Visual 101 - Kamera</title>
+  <title>Visual 101 - Kamera z Filtrami</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
 </head>
 <body>
   <h1>Visual 101 - Zabawa z Kamerą</h1>
   <div id="camera-container">
     <video id="camera" autoplay playsinline></video>
+    <canvas id="overlay"></canvas>
     <div id="start-container">
       <button id="start-camera">Włącz Kamerę</button>
     </div>
+  </div>
+  <div id="filters-container">
+    <button class="filter-btn" data-filter="none">Normalny</button>
+    <button class="filter-btn" data-filter="dog">Piesek</button>
+    <button class="filter-btn" data-filter="cat">Kotek</button>
+    <button class="filter-btn" data-filter="rainbow">Tęcza</button>
   </div>
   <script src="script.js"></script>
 </body>
