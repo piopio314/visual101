@@ -1,22 +1,31 @@
-// Basic visualization setup
-const visualization = document.getElementById('visualization');
+document.addEventListener('DOMContentLoaded', () => {
+  const video = document.getElementById('camera');
+  const startButton = document.getElementById('start-camera');
+  const startContainer = document.getElementById('start-container');
 
-// Example visualization data
-const data = [10, 20, 30, 40, 50];
+  startButton.addEventListener('click', async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        },
+        audio: false
+      });
+      
+      video.srcObject = stream;
+      startContainer.style.display = 'none';
+      
+      // Obsługa błędów podczas odtwarzania
+      video.onerror = (error) => {
+        console.error('Błąd odtwarzania wideo:', error);
+        alert('Wystąpił błąd podczas uruchamiania kamery.');
+      };
 
-// Create SVG element
-const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-svg.setAttribute('width', '100%');
-svg.setAttribute('height', '100%');
-visualization.appendChild(svg);
-
-// Create bars for data visualization
-data.forEach((value, index) => {
-  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  rect.setAttribute('x', index * 20 + '%');
-  rect.setAttribute('y', 100 - value + '%');
-  rect.setAttribute('width', '15%');
-  rect.setAttribute('height', value + '%');
-  rect.setAttribute('fill', 'rgba(255, 255, 255, 0.7)');
-  svg.appendChild(rect);
+    } catch (error) {
+      console.error('Błąd dostępu do kamery:', error);
+      alert('Nie udało się uzyskać dostępu do kamery. Upewnij się, że przeglądarka ma uprawnienia do korzystania z kamery.');
+    }
+  });
 });
