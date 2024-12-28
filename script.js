@@ -15,8 +15,8 @@ const buttons = {
 
 // Załaduj modele face-api.js
 Promise.all([
-    faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/weights'),
-    faceapi.nets.faceLandmark68Net.loadFromUri('https://justadudewhohacks.github.io/face-api.js/weights')
+    faceapi.nets.tinyFaceDetector.loadFromUri('https://unpkg.com/face-api.js@0.22.2/weights'),
+    faceapi.nets.faceLandmark68Net.loadFromUri('https://unpkg.com/face-api.js@0.22.2/weights')
 ]).then(initCamera);
 
 // Inicjalizacja kamery
