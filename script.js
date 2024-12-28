@@ -3,6 +3,7 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 let currentEffect = 'normalny';
 let stream = null;
+let detections = null;
 
 // Przyciski efektów
 const buttons = {
@@ -11,6 +12,12 @@ const buttons = {
     okulary: document.getElementById('okulary'),
     kapelusz: document.getElementById('kapelusz')
 };
+
+// Załaduj modele face-api.js
+Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js/weights/'),
+    faceapi.nets.faceLandmark68Net.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js/weights/')
+]).then(initCamera);
 
 // Inicjalizacja kamery
 async function initCamera() {
@@ -34,8 +41,12 @@ async function initCamera() {
 }
 
 // Aktualizacja canvas
-function updateCanvas() {
+async function updateCanvas() {
     if (!stream) return;
+
+    // Wykryj twarz
+    detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks();
 
     // Rysuj obraz z kamery
     ctx.save();
@@ -43,26 +54,38 @@ function updateCanvas() {
     ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
     ctx.restore();
 
-    // Zastosuj efekt
-    applyEffect();
+    // Zastosuj efekt jeśli wykryto twarz
+    if (detections && detections.length > 0) {
+        applyEffect(detections[0]);
+    }
 
     // Kontynuuj animację
     requestAnimationFrame(updateCanvas);
 }
 
 // Aplikowanie efektów
-function applyEffect() {
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const size = canvas.width * 0.3;
+function applyEffect(detection) {
+    const landmarks = detection.landmarks;
+    const nose = landmarks.getNose();
+    const leftEye = landmarks.getLeftEye();
+    const rightEye = landmarks.getRightEye();
+    
+    // Środek oczu
+    const eyesCenter = {
+        x: (leftEye[0].x + rightEye[3].x) / 2,
+        y: (leftEye[0].y + rightEye[3].y) / 2
+    };
+    
+    // Odległość między oczami (do skalowania efektów)
+    const eyeDistance = Math.hypot(rightEye[3].x - leftEye[0].x, rightEye[3].y - leftEye[0].y);
 
     switch (currentEffect) {
         case 'maska':
             // Czerwony trójkąt
             ctx.beginPath();
-            ctx.moveTo(centerX, centerY - size/2);
-            ctx.lineTo(centerX - size/2, centerY + size/2);
-            ctx.lineTo(centerX + size/2, centerY + size/2);
+            ctx.moveTo(nose[3].x, nose[3].y - eyeDistance/2);
+            ctx.lineTo(nose[3].x - eyeDistance/2, nose[3].y + eyeDistance/2);
+            ctx.lineTo(nose[3].x + eyeDistance/2, nose[3].y + eyeDistance/2);
             ctx.closePath();
             ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
             ctx.fill();
@@ -70,18 +93,23 @@ function applyEffect() {
 
         case 'okulary':
             // Czarne okulary
-            ctx.beginPath();
+            const eyeSize = eyeDistance * 0.4;
+            
             // Lewa soczewka
-            ctx.arc(centerX - size/3, centerY, size/4, 0, Math.PI * 2);
+            ctx.beginPath();
+            ctx.arc(leftEye[0].x, leftEye[0].y, eyeSize, 0, Math.PI * 2);
+            
             // Prawa soczewka
-            ctx.arc(centerX + size/3, centerY, size/4, 0, Math.PI * 2);
-            ctx.lineWidth = 10;
+            ctx.arc(rightEye[3].x, rightEye[3].y, eyeSize, 0, Math.PI * 2);
+            
+            ctx.lineWidth = eyeDistance * 0.05;
             ctx.strokeStyle = 'black';
             ctx.stroke();
+            
             // Mostek okularów
             ctx.beginPath();
-            ctx.moveTo(centerX - size/6, centerY);
-            ctx.lineTo(centerX + size/6, centerY);
+            ctx.moveTo(leftEye[0].x + eyeSize * 0.7, eyesCenter.y);
+            ctx.lineTo(rightEye[3].x - eyeSize * 0.7, eyesCenter.y);
             ctx.stroke();
             break;
 
@@ -105,6 +133,3 @@ Object.entries(buttons).forEach(([effect, button]) => {
 
 // Aktywuj przycisk "normalny" na start
 buttons.normalny.classList.add('active');
-
-// Uruchom kamerę
-initCamera();
