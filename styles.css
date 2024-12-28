@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  padding: 0;
+  padding: 1rem;
   font-family: 'Arial', sans-serif;
   background: linear-gradient(to right, #000000, #000033) fixed;
   color: white;
@@ -9,24 +9,32 @@ body {
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  box-sizing: border-box;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 h1 {
   text-align: center;
-  font-size: 2.5rem;
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(10px);
   border-radius: 15px;
-  padding: 1.5rem 3rem;
+  padding: clamp(1rem, 3vw, 1.5rem) clamp(1.5rem, 5vw, 3rem);
   border: 1px solid rgba(255,255,255,0.3);
-  margin: 2rem 0;
+  margin: 1rem 0;
+  width: fit-content;
+  max-width: 90%;
 }
 
 #camera-container {
-  width: 90%;
-  max-width: 800px;
-  aspect-ratio: 16/9;
+  width: 100%;
+  max-width: min(90vh, 90vw);
+  max-height: 70vh;
+  aspect-ratio: 1;
   margin: 0 auto;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 15px;
@@ -35,6 +43,32 @@ h1 {
   border: 1px solid rgba(255,255,255,0.3);
   position: relative;
   overflow: hidden;
+}
+
+/* Orientacja pozioma na telefonach */
+@media (orientation: landscape) and (max-height: 500px) {
+  body {
+    padding: 0.5rem;
+  }
+
+  h1 {
+    font-size: clamp(1rem, 4vw, 1.5rem);
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 0;
+  }
+
+  #camera-container {
+    max-height: 80vh;
+    aspect-ratio: 4/3;
+  }
+}
+
+/* Tablety i większe ekrany */
+@media (min-width: 768px) {
+  #camera-container {
+    max-width: min(80vh, 800px);
+    aspect-ratio: 4/3;
+  }
 }
 
 #camera {
@@ -48,11 +82,14 @@ h1 {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  width: 100%;
+  text-align: center;
+  padding: 1rem;
 }
 
 #start-camera {
-  padding: 1rem 2rem;
-  font-size: 1.2rem;
+  padding: clamp(0.8rem, 2vw, 1rem) clamp(1.5rem, 4vw, 2rem);
+  font-size: clamp(1rem, 3vw, 1.2rem);
   background: rgba(255, 255, 255, 0.2);
   border: 2px solid rgba(255, 255, 255, 0.5);
   color: white;
