@@ -82,6 +82,26 @@ h1 {
   transform: scale(1.05);
 }
 
+.switch-camera-btn {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.switch-camera-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.05);
+}
+
 /* Orientacja pozioma na telefonach */
 @media (orientation: landscape) and (max-height: 500px) {
   body {
@@ -104,6 +124,11 @@ h1 {
   }
 
   .filter-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .switch-camera-btn {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
   }

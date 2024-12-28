@@ -7,13 +7,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   let currentFilter = 'none';
   let isModelLoaded = false;
+  let currentStream = null;
+  let currentFacingMode = 'user';
 
   // Ładowanie modeli face-api.js
   async function loadModels() {
     try {
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js/weights/'),
-        faceapi.nets.faceLandmark68Net.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js/weights/'),
+        faceapi.nets.faceLandmark68Net.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js/weights/')
       ]);
       isModelLoaded = true;
       console.log('Modele załadowane');
@@ -128,29 +130,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     requestAnimationFrame(processVideo);
   }
 
-  // Obsługa przycisków filtrów
-  filtersContainer.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentFilter = btn.dataset.filter;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
+  // Funkcja do inicjalizacji kamery
+  async function initializeCamera(facingMode = 'user') {
+    if (currentStream) {
+      currentStream.getTracks().forEach(track => track.stop());
+    }
 
-  // Inicjalizacja kamery
-  startButton.addEventListener('click', async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 1280 },
           height: { ideal: 720 },
-          facingMode: 'user'
+          facingMode: facingMode
         },
         audio: false
       });
       
+      currentStream = stream;
       video.srcObject = stream;
-      startContainer.style.display = 'none';
+      currentFacingMode = facingMode;
       
       // Dostosowanie rozmiaru canvas do wideo
       video.addEventListener('playing', () => {
@@ -158,7 +156,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         overlay.height = video.clientHeight;
       });
 
-      // Rozpoczęcie przetwarzania wideo po załadowaniu modeli
       if (!isModelLoaded) {
         await loadModels();
       }
@@ -168,6 +165,32 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.error('Błąd dostępu do kamery:', error);
       alert('Nie udało się uzyskać dostępu do kamery. Upewnij się, że przeglądarka ma uprawnienia do korzystania z kamery.');
     }
+  }
+
+  // Obsługa przycisków filtrów
+  filtersContainer.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentFilter = btn.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Inicjalizacja kamery po kliknięciu przycisku start
+  startButton.addEventListener('click', async () => {
+    startContainer.style.display = 'none';
+    await initializeCamera('user');
+
+    // Dodanie przycisku do przełączania kamery
+    const switchButton = document.createElement('button');
+    switchButton.textContent = 'Przełącz kamerę';
+    switchButton.className = 'switch-camera-btn';
+    document.getElementById('camera-container').appendChild(switchButton);
+
+    switchButton.addEventListener('click', () => {
+      const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+      initializeCamera(newFacingMode);
+    });
   });
 
   // Załadowanie modeli podczas inicjalizacji strony
